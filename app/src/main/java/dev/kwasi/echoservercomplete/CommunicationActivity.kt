@@ -194,6 +194,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
         wfdManager?.connectToPeer(peer)
+        val toast = Toast.makeText(this, "Peer has been clicked", Toast.LENGTH_SHORT)
+        toast.show()
+        wfdHasConnection = true
+        updateUI()
     }
 
 
