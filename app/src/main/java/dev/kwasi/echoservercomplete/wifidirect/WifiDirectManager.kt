@@ -101,6 +101,7 @@ class WifiDirectManager(
         })
     }
 
+   /*
     @SuppressLint("MissingPermission")
     fun discoverPeers(){
         manager.discoverPeers(channel, object : ActionListener {
@@ -113,6 +114,27 @@ class WifiDirectManager(
             }
         })
     }
+
+    */
+   private fun generateMockPeers(): List<WifiP2pDevice> {
+       val mockDevice1 = WifiP2pDevice().apply {
+           deviceName = "MockDevice1"
+           deviceAddress = "00:11:22:33:44:55"
+       }
+
+       val mockDevice2 = WifiP2pDevice().apply {
+           deviceName = "MockDevice2"
+           deviceAddress = "66:77:88:99:AA:BB"
+       }
+
+       return listOf(mockDevice1, mockDevice2)
+   }
+   @SuppressLint("MissingPermission")
+   fun discoverPeers() {
+           Log.e("WFDManager", "Simulating peer discovery with mock data")
+           val mockPeers = generateMockPeers()
+           iFaceImpl.onPeerListUpdated(mockPeers)
+   }
 
     fun disconnect(){
         manager.removeGroup(channel, object : ActionListener {
