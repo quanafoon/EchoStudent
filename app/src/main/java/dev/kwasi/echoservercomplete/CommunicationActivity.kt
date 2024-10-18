@@ -7,6 +7,7 @@ import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -45,6 +46,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
+    private lateinit var etStudentID : EditText
+    private lateinit var searchBtn : Button
+    private lateinit var rvPeerList : RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,15 +64,30 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val channel = manager.initialize(this, mainLooper, null)
         wfdManager = WifiDirectManager(manager, channel, this)
 
-        peerListAdapter = PeerListAdapter(this)
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.adapter = peerListAdapter
-        rvPeerList.layoutManager = LinearLayoutManager(this)
 
         chatListAdapter = ChatListAdapter()
         val rvChatList: RecyclerView = findViewById(R.id.rvChat)
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
+
+        peerListAdapter = PeerListAdapter(this)
+        rvPeerList = findViewById(R.id.rvPeerList)
+        rvPeerList.adapter = peerListAdapter
+        rvPeerList.layoutManager = LinearLayoutManager(this)
+        rvPeerList.visibility = View.GONE
+
+        etStudentID = findViewById(R.id.etStudentID)
+        searchBtn = findViewById(R.id.SearchClassesBtn)
+        searchBtn.setOnClickListener{ view : View ->
+            val studentID = etStudentID.text.toString()
+            if (studentID.isNotEmpty()) {
+                discoverNearbyPeers(view)
+            }
+            else{
+                val toast = Toast.makeText(this, "Please enter a Student ID", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+        }
     }
 
     override fun onResume() {
@@ -84,21 +103,26 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             unregisterReceiver(it)
         }
     }
+
     fun createGroup(view: View) {
         wfdManager?.createGroup()
     }
 
     fun discoverNearbyPeers(view: View) {
+        var text = "Discovering peers"
+        val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
+        toast.show()
         wfdManager?.discoverPeers()
     }
+
 
     private fun updateUI(){
         //The rules for updating the UI are as follows:
         // IF the WFD adapter is NOT enabled then
         //      Show UI that says turn on the wifi adapter
         // ELSE IF there is NO WFD connection then i need to show a view that allows the user to either
-            // 1) create a group with them as the group owner OR
-            // 2) discover nearby groups
+        // 1) create a group with them as the group owner OR
+        // 2) discover nearby groups
         // ELSE IF there are nearby groups found, i need to show them in a list
         // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
@@ -107,22 +131,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.clNoWifiDirectConnection)
         wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
+        rvPeerList = findViewById(R.id.rvPeerList)
         rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
 
         val wfdConnectedView:ConstraintLayout = findViewById(R.id.clHasConnection)
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
-    fun sendMessage(view: View) {
-        val etMessage:EditText = findViewById(R.id.etMessage)
-        val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
-        etMessage.text.clear()
-        client?.sendMessage(content)
-        chatListAdapter?.addItemToEnd(content)
-
-    }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
@@ -138,13 +153,17 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
+
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
         val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
         toast.show()
         hasDevices = deviceList.isNotEmpty()
         peerListAdapter?.updateList(deviceList)
+        rvPeerList = findViewById(R.id.rvPeerList)
+        rvPeerList.visibility = View.VISIBLE
         updateUI()
     }
+
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text = if (groupInfo == null){
