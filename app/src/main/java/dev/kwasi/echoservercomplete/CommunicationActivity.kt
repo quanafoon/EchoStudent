@@ -2,10 +2,12 @@ package dev.kwasi.echoservercomplete
 
 import android.content.Context
 import android.content.IntentFilter
+import android.health.connect.datatypes.units.Length
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -21,7 +23,6 @@ import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
-import dev.kwasi.echoservercomplete.network.Server
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
@@ -43,12 +44,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
     private var hasDevices = false
-    private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
     private lateinit var etStudentID : EditText
     private lateinit var searchBtn : Button
     private lateinit var rvPeerList : RecyclerView
+    private lateinit var etMessage : EditText
+    private lateinit var sendBtn : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +80,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
         etStudentID = findViewById(R.id.etStudentID)
         searchBtn = findViewById(R.id.SearchClassesBtn)
+        etMessage = findViewById(R.id.etMessage)
+        sendBtn = findViewById(R.id.sendBtn)
+
         searchBtn.setOnClickListener{ view : View ->
             val studentID = etStudentID.text.toString()
             if (studentID.isNotEmpty()) {
@@ -88,6 +93,20 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                 toast.show()
             }
         }
+
+        sendBtn.setOnClickListener { view: View ->
+            val message = etMessage.text.toString()
+            if (message.isNotEmpty()) {
+                val content = ContentModel(message, deviceIp)
+                client?.sendMessage(content)
+                etMessage.setText("")
+            } else {
+                val toast = Toast.makeText(this, "Enter a message", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+        }
+
+
     }
 
     override fun onResume() {
@@ -104,9 +123,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
-    fun createGroup(view: View) {
-        wfdManager?.createGroup()
-    }
 
     fun discoverNearbyPeers(view: View) {
         var text = "Discovering peers"
@@ -176,12 +192,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
-            server?.close()
             client?.close()
-        } else if (groupInfo.isGroupOwner && server == null){
-            server = Server(this)
-            deviceIp = "192.168.49.1"
-        } else if (!groupInfo.isGroupOwner && client == null) {
+        }
+        else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this)
             deviceIp = client!!.ip
         }
@@ -194,16 +207,22 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
         wfdManager?.connectToPeer(peer)
+        updateUI()
         val toast = Toast.makeText(this, "Peer has been clicked", Toast.LENGTH_SHORT)
         toast.show()
-        wfdHasConnection = true
-        updateUI()
+
+
     }
 
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{
             chatListAdapter?.addItemToEnd(content)
+
+            val rvChatList: RecyclerView = findViewById(R.id.rvChat)
+            rvChatList.adapter = chatListAdapter
+            rvChatList.layoutManager = LinearLayoutManager(this)
+            rvChatList.scrollToPosition(chatListAdapter!!.itemCount - 1)
         }
     }
 

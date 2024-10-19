@@ -71,19 +71,6 @@ class WifiDirectManager(
         }
     }
 
-    @SuppressLint("MissingPermission")
-    fun createGroup(){
-        manager.createGroup(channel, object : ActionListener {
-            override fun onSuccess() {
-                Log.e("WFDManager","Successfully created a group with myself as the GO")
-            }
-
-            override fun onFailure(reason: Int) {
-                Log.e("WFDManager","An error occurred while trying to create a group")
-            }
-
-        })
-    }
 
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
@@ -117,41 +104,6 @@ class WifiDirectManager(
             override fun onFailure(reason: Int) {
                 Log.e("WFDManager","An error occurred while trying to discover peers")
             }
-        })
-    }
-
-/*
-   private fun generateMockPeers(): List<WifiP2pDevice> {
-       val mockDevice1 = WifiP2pDevice().apply {
-           deviceName = "MockDevice1"
-           deviceAddress = "00:11:22:33:44:55"
-       }
-
-       val mockDevice2 = WifiP2pDevice().apply {
-           deviceName = "MockDevice2"
-           deviceAddress = "66:77:88:99:AA:BB"
-       }
-
-       return listOf(mockDevice1, mockDevice2)
-   }
-
-
-   @SuppressLint("MissingPermission")
-   fun discoverPeers() {
-           Log.e("WFDManager", "Simulating peer discovery with mock data")
-           val mockPeers = generateMockPeers()
-           iFaceImpl.onPeerListUpdated(mockPeers)
-   }
-*/
-    fun disconnect(){
-        manager.removeGroup(channel, object : ActionListener {
-            override fun onSuccess() {
-                Log.e("WFDManager","Successfully disconnected from the group")
-            }
-            override fun onFailure(reason: Int) {
-                Log.e("WFDManager","An error occurred while trying to disconnect from the group")
-            }
-
         })
     }
 }
