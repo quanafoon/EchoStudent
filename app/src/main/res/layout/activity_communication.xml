@@ -68,8 +68,8 @@
 
         <EditText
             android:id="@+id/etStudentID"
-            android:layout_width="169dp"
-            android:layout_height="69dp"
+            android:layout_width="200dp"
+            android:layout_height="65dp"
             android:layout_marginTop="152dp"
             android:ems="10"
             android:hint="Enter Student ID..."
@@ -79,20 +79,20 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/Title"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintVertical_bias="0.106" />
 
         <Button
             android:id="@+id/SearchClassesBtn"
-            android:layout_width="154dp"
-            android:layout_height="97dp"
+            android:layout_width="117dp"
+            android:layout_height="101dp"
             android:text="Search for Classes"
-            android:textSize="16sp"
+            android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/Title"
-            app:layout_constraintVertical_bias="0.284" />
+            app:layout_constraintVertical_bias="0.243" />
 
         <TextView
             android:id="@+id/ClassesTitle"
@@ -176,8 +176,24 @@
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent">
 
+
+            <EditText
+                android:id="@+id/etMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="Type a message"
+                android:inputType="text" />
+
+            <Button
+                android:id="@+id/sendBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send" />
+
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

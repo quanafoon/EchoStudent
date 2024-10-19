@@ -12,11 +12,16 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
     private lateinit var clientSocket: Socket
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
+    private val serverIp = "192.168.49.1"
+    private val port = 9999
+
     var ip:String = ""
 
     init {
         thread {
-            clientSocket = Socket("192.168.49.1", Server.PORT)
+
+
+            clientSocket = Socket(serverIp, port)
             reader = clientSocket.inputStream.bufferedReader()
             writer = clientSocket.outputStream.bufferedWriter()
             ip = clientSocket.inetAddress.hostAddress!!
@@ -42,8 +47,10 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
                 throw Exception("We aren't currently connected to the server!")
             }
             val contentAsStr:String = Gson().toJson(content)
+            networkMessageInterface.onContent(content)
             writer.write("$contentAsStr\n")
             writer.flush()
+
         }
 
     }
