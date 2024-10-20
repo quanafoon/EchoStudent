@@ -62,6 +62,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             insets
         }
 
+        registerReceiver(wfdManager,intentFilter)
+
+
         val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         val channel = manager.initialize(this, mainLooper, null)
         wfdManager = WifiDirectManager(manager, channel, this)
@@ -182,22 +185,30 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
-        val text = if (groupInfo == null){
+        val text = if (groupInfo == null) {
             "Group is not formed"
         } else {
             "Group has been formed"
         }
-        val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
+        val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
         toast.show()
-        wfdHasConnection = groupInfo != null
 
-        if (groupInfo == null){
+
+        if (groupInfo == null) {
             client?.close()
-        }
-        else if (!groupInfo.isGroupOwner && client == null) {
+        } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this)
             deviceIp = client!!.ip
+        }else if (groupInfo.isGroupOwner){
+            Log.i("CommunicationActivity", "Is the group owner")
         }
+
+        val studentID = etStudentID.text.toString()
+        val content = ContentModel(message = studentID, senderIp = deviceIp)
+        client?.sendMessage(content)
+
+
+        wfdHasConnection = groupInfo != null
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
@@ -205,12 +216,24 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         toast.show()
     }
 
+
+
     override fun onPeerClicked(peer: WifiP2pDevice) {
+        /*
         wfdManager?.connectToPeer(peer)
         updateUI()
         val toast = Toast.makeText(this, "Peer has been clicked", Toast.LENGTH_SHORT)
         toast.show()
-
+        */
+        wfdManager?.requestGroupInfo { group ->
+            if (group != null && group.isGroupOwner) {
+                Log.i("Student", "Connecting to lecturer (GO)")
+                wfdManager?.connectToPeer(peer)
+                updateUI()
+            } else {
+                Log.i("Student", "Lecturer is not the GO, cannot connect")
+            }
+        }
 
     }
 

@@ -106,4 +106,14 @@ class WifiDirectManager(
             }
         })
     }
+
+    @SuppressLint("MissingPermission")
+    fun requestGroupInfo(callback: (WifiP2pGroup?) -> Unit) {
+        manager.requestGroupInfo(channel, object : WifiP2pManager.GroupInfoListener {
+            override fun onGroupInfoAvailable(group: WifiP2pGroup?) {
+                callback(group)
+            }
+        })
+    }
+
 }
