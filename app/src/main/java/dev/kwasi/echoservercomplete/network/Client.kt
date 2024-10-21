@@ -13,8 +13,8 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
     private val serverIp = "192.168.49.1"
-    private val port : Int = 9999
-
+    private val port : Int = 9090
+    private var isRunning = true
     var ip:String = ""
 
     init {
@@ -26,7 +26,11 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
             writer = clientSocket.outputStream.bufferedWriter()
             ip = clientSocket.inetAddress.hostAddress!!
 
-            while(true){
+            val handshake = ContentModel("816041437", ip)
+            val studentInfoString = Gson().toJson(handshake)
+            writer.write(studentInfoString)
+
+            while(isRunning){
                 try{
                     val serverResponse = reader.readLine()
                     if (serverResponse != null){
@@ -58,6 +62,9 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
     }
 
     fun close(){
+        isRunning = false
+        reader.close()
+        writer.close()
         clientSocket.close()
     }
 }
